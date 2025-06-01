@@ -9,17 +9,21 @@ import pandas as pd
 st.title("DXF Laser Kalkulačka")
 
 # krok 1: upload souboru
-uploaded = st.file_uploader("Nahraj DXF soubor", type="dxf")
+uploaded = st.file_uploader("Nahraj DXF soubor", type=["dxf", "dwg"])
 if not uploaded:
-    st.info("Prosím nahraj DXF soubor výše.")
+    st.info("Prosím nahraj DXF nebo DWG soubor výše.")
     st.stop()
 
-# krok 2: uložení uploadu do temp souboru a načtení DXF
-with tempfile.NamedTemporaryFile(suffix=".dxf", delete=False) as tmp:
+# krok 2: uložení uploadu do temp souboru a načtení DXF/DWG
+with tempfile.NamedTemporaryFile(suffix="." + uploaded.name.split(".")[-1], delete=False) as tmp:
     tmp.write(uploaded.getbuffer())
     tmp_path = tmp.name
 
-doc = ezdxf.readfile(tmp_path)
+try:
+    doc = ezdxf.readfile(tmp_path)
+except Exception as e:
+    st.error(f"Chyba při načítání souboru: {e}")
+    st.stop()
 msp = doc.modelspace()
 
 # Pomocná funkce pro výpočet plochy polygonu (shoelace formula)
